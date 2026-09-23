@@ -56,8 +56,8 @@ class DQNAgent:
         action_dim=2,
         lr=5e-4,
         gamma=0.99,
-        epsilon_start=1.0,
-        epsilon_min=0.01,
+        epsilon_start=0.1,
+        epsilon_min=0.001,
         epsilon_decay=0.995,       # Calibrated for per-episode decay
         target_update_freq=500,
         batch_size=64,

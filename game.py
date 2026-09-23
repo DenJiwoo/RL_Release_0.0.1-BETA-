@@ -3,7 +3,7 @@ import pygame
 from pygame.locals import QUIT, KEYDOWN, K_SPACE, K_UP
 
 from config import (
-    SCREEN_WIDTH, SCREEN_HEIGHT, GROUND_WIDTH, PIPE_GAP,
+    GROUND_HEIGHT, SCREEN_WIDTH, SCREEN_HEIGHT, GROUND_WIDTH, PIPE_GAP,
     PIPE_SPACING, STATE_READY, STATE_PLAYING, STATE_GAME_OVER
 )
 from entities import Bird, Pipe, Ground
@@ -75,8 +75,14 @@ class FlappyGame:
 
         return [norm_bird_y, norm_velocity, norm_dx, norm_dy]
 
+    # In game.py
     def spawn_pipe_pair(self, x_pos):
-        size = random.randint(100, 300)
+        # Minimum pipe visible height (e.g., 50px)
+        min_height = 50
+        # Maximum height leaving room for gap and top pipe
+        max_height = SCREEN_HEIGHT - GROUND_HEIGHT - PIPE_GAP - min_height
+        
+        size = random.randint(min_height, max_height)
         lower_pipe = Pipe(self.assets, False, x_pos, size)
         upper_pipe = Pipe(self.assets, True, x_pos, SCREEN_HEIGHT - size - PIPE_GAP)
         self.pipe_group.add(lower_pipe, upper_pipe)
