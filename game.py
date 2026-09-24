@@ -23,10 +23,29 @@ class FlappyGame:
         self.ground_group = pygame.sprite.Group()
         self.pipe_group = pygame.sprite.Group()
 
+        # Progressive difficulty parameters
+        self.base_speed = 4.0        # Baseline scroll speed (px/frame)
+        self.speed_increment = 0.2   # +5% speed every 20 pipes
+        self.max_speed = 5.0         # 1.5x speed ceiling
+        self.pipe_speed = self.base_speed
+
         self.reset()
+
+    def _update_speed(self):
+        """Calculates current tier and propagates speed to all active sprites."""
+        tier = self.score // 20
+        self.pipe_speed = min(
+            self.base_speed + (tier * self.speed_increment),
+            self.max_speed
+        )
+        for pipe in self.pipe_group:
+            pipe.speed = self.pipe_speed
+        for ground in self.ground_group:
+            ground.speed = self.pipe_speed
 
     def reset(self):
         self.score = 0
+        self.pipe_speed = self.base_speed
         self.state = STATE_PLAYING
         self.bird_group.empty()
         self.ground_group.empty()
@@ -36,7 +55,9 @@ class FlappyGame:
         self.bird_group.add(self.bird)
 
         for i in range(2):
-            self.ground_group.add(Ground(self.assets, GROUND_WIDTH * i))
+            ground = Ground(self.assets, GROUND_WIDTH * i)
+            ground.speed = self.pipe_speed
+            self.ground_group.add(ground)
 
         for i in range(2):
             self.spawn_pipe_pair(SCREEN_WIDTH + 300 + (i * PIPE_SPACING))
@@ -57,17 +78,13 @@ class FlappyGame:
         target_pipe = self._get_upcoming_pipe()
 
         if target_pipe is None:
-            # Fallback for the rare edge case where no pipe is active yet
             return [0.0, 0.0, 1.0, 0.0]
 
-        # Calculate gap center y
         gap_center_y = target_pipe.rect.top - (PIPE_GAP / 2.0)
 
-        # Compute raw differences
         dx = target_pipe.rect.left - self.bird.rect.right
         dy = gap_center_y - self.bird.rect.centery
 
-        # Normalize features
         norm_bird_y = self.bird.rect.centery / SCREEN_HEIGHT
         norm_velocity = self.bird.velocity / 15.0
         norm_dx = dx / SCREEN_WIDTH
@@ -79,6 +96,11 @@ class FlappyGame:
         size = random.randint(100, 300)
         lower_pipe = Pipe(self.assets, False, x_pos, size)
         upper_pipe = Pipe(self.assets, True, x_pos, SCREEN_HEIGHT - size - PIPE_GAP)
+        
+        # Ensure new pipes immediately match current game speed
+        lower_pipe.speed = self.pipe_speed
+        upper_pipe.speed = self.pipe_speed
+        
         self.pipe_group.add(lower_pipe, upper_pipe)
 
     def handle_events(self):
@@ -105,7 +127,9 @@ class FlappyGame:
             if first_ground.is_off_screen:
                 self.ground_group.remove(first_ground)
                 last_ground = self.ground_group.sprites()[-1]
-                self.ground_group.add(Ground(self.assets, last_ground.rect.right))
+                new_ground = Ground(self.assets, last_ground.rect.right)
+                new_ground.speed = self.pipe_speed
+                self.ground_group.add(new_ground)
 
         if self.state == STATE_READY:
             self.bird.update_animation(speed=6)
@@ -125,6 +149,7 @@ class FlappyGame:
                     if self.bird.rect.centerx > pipe.rect.centerx:
                         pipe.passed = True
                         self.score += 1
+                        self._update_speed()  # Recalculate speed on score changes
 
             ground_hit = pygame.sprite.spritecollide(
                 self.bird, self.ground_group, False, pygame.sprite.collide_mask

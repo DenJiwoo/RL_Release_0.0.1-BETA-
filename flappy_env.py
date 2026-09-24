@@ -39,17 +39,41 @@ class FlappyBirdEnv(gym.Env):
         self.assets = AssetManager()
         self.game = FlappyGame(self.screen, self.clock, self.assets)
 
+        # Progressive Difficulty Parameters
+        # Reads base speed from game if defined, otherwise defaults to 4.0 px/frame
+        self.BASE_PIPE_SPEED = getattr(self.game, "pipe_speed", 4.0)
+        self.SPEED_INCREMENT = 0.2   # +5% per 20 pipes
+        self.MAX_PIPE_SPEED = 5.0    # 1.5x cap to maintain physically solvable gaps
+        self.current_pipe_speed = self.BASE_PIPE_SPEED
+
+    def _update_speed(self):
+        """Calculates and applies speed scaling based on current score."""
+        tier = self.game.score // 20
+        self.current_pipe_speed = min(
+            self.BASE_PIPE_SPEED + (tier * self.SPEED_INCREMENT),
+            self.MAX_PIPE_SPEED
+        )
+        # Propagate dynamic speed to the underlying FlappyGame instance
+        if hasattr(self.game, "pipe_speed"):
+            self.game.pipe_speed = self.current_pipe_speed
+
     def reset(self, seed=None, options=None):
         super().reset(seed=seed)
 
         self.game.reset()
+        self.current_pipe_speed = self.BASE_PIPE_SPEED
+        if hasattr(self.game, "pipe_speed"):
+            self.game.pipe_speed = self.BASE_PIPE_SPEED
+
         obs = np.array(self.game.get_observation(), dtype=np.float32)
-        info = {"score": self.game.score}
+        info = {
+            "score": self.game.score,
+            "pipe_speed": self.current_pipe_speed
+        }
 
         return obs, info
 
     def step(self, action):
-        # Keep Pygame responsive to OS events
         pygame.event.pump()
 
         prev_score = self.game.score
@@ -58,7 +82,9 @@ class FlappyBirdEnv(gym.Env):
         if action == 1:
             self.game.bird.flap(sound=None)
 
+        # Update difficulty before stepping game physics
         self.game.update()
+        self._update_speed()
 
         terminated = (self.game.state == STATE_GAME_OVER)
         truncated = False
@@ -71,7 +97,10 @@ class FlappyBirdEnv(gym.Env):
                 reward += 5.0  # Pipe clearance reward
 
         obs = np.array(self.game.get_observation(), dtype=np.float32)
-        info = {"score": self.game.score}
+        info = {
+            "score": self.game.score,
+            "pipe_speed": self.current_pipe_speed
+        }
 
         if self.render_mode == "human":
             self.render()

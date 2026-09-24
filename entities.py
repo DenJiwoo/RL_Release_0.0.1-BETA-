@@ -42,6 +42,7 @@ class Pipe(pygame.sprite.Sprite):
         super().__init__()
         self.inverted = inverted
         self.passed = False
+        self.speed = 4.0
 
         if inverted:
             self.image = pygame.transform.flip(assets.pipe, False, True)
@@ -55,9 +56,12 @@ class Pipe(pygame.sprite.Sprite):
             self.rect.y = SCREEN_HEIGHT - y_size
 
         self.mask = pygame.mask.from_surface(self.image)
+        # Float position tracker for accurate sub-pixel movement
+        self.x = float(x_pos)
 
     def update(self):
-        self.rect.x -= SCROLL_SPEED
+        self.x -= getattr(self, "speed", 4.0)
+        self.rect.x = int(round(self.x))
 
     @property
     def is_off_screen(self):
@@ -71,9 +75,13 @@ class Ground(pygame.sprite.Sprite):
         self.image = assets.ground
         self.rect = self.image.get_rect(topleft=(x_pos, SCREEN_HEIGHT - GROUND_HEIGHT))
         self.mask = pygame.mask.from_surface(self.image)
+        self.speed = 4.0
+        # Float position tracker to prevent ground seam gaps
+        self.x = float(x_pos)
 
     def update(self):
-        self.rect.x -= SCROLL_SPEED
+        self.x -= getattr(self, "speed", 4.0)
+        self.rect.x = int(round(self.x))
 
     @property
     def is_off_screen(self):
