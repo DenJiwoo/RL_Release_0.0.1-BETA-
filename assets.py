@@ -25,7 +25,7 @@ class AssetManager:
         self.message = load_image(sprites_dir / 'message.png', with_alpha=True)
 
         # Obstacles & Environment
-        self.pipe = load_image(sprites_dir / 'pipe-green.png', with_alpha=True)
+        self.pipe = load_image(sprites_dir / 'pipe-pixel.png', with_alpha=True)
         self.pipe = pygame.transform.scale(self.pipe, (PIPE_WIDTH, PIPE_HEIGHT))
 
         self.ground = load_image(sprites_dir / 'base.png', with_alpha=True)
