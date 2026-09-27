@@ -20,12 +20,12 @@ class AssetManager:
         audio_dir = ASSETS_DIR / 'audio'
 
         # Background & UI
-        self.background = load_image(sprites_dir / 'background-day.png')
+        self.background = load_image(sprites_dir / 'background-night.png')
         self.background = pygame.transform.scale(self.background, (SCREEN_WIDTH, SCREEN_HEIGHT))
         self.message = load_image(sprites_dir / 'message.png', with_alpha=True)
 
         # Obstacles & Environment
-        self.pipe = load_image(sprites_dir / 'pipe-green.png', with_alpha=True)
+        self.pipe = load_image(sprites_dir / 'pipe-pixel.png', with_alpha=True)
         self.pipe = pygame.transform.scale(self.pipe, (PIPE_WIDTH, PIPE_HEIGHT))
 
         self.ground = load_image(sprites_dir / 'base.png', with_alpha=True)
@@ -33,9 +33,9 @@ class AssetManager:
 
         # Bird Frames
         self.bird_frames = [
-            load_image(sprites_dir / 'bluebird-upflap.png', with_alpha=True),
-            load_image(sprites_dir / 'bluebird-midflap.png', with_alpha=True),
-            load_image(sprites_dir / 'bluebird-downflap.png', with_alpha=True)
+            load_image(sprites_dir / 'bat-upflap.png', with_alpha=True),
+            load_image(sprites_dir / 'bat-downflap.png', with_alpha=True),
+            load_image(sprites_dir / 'bat-downflap.png', with_alpha=True)
         ]
 
         # Audio Effects
