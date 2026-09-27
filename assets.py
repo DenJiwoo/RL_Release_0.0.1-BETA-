@@ -33,9 +33,9 @@ class AssetManager:
 
         # Bird Frames
         self.bird_frames = [
-            load_image(sprites_dir / 'bluebird-upflap.png', with_alpha=True),
-            load_image(sprites_dir / 'bluebird-midflap.png', with_alpha=True),
-            load_image(sprites_dir / 'bluebird-downflap.png', with_alpha=True)
+            load_image(sprites_dir / 'bat-upflap.png', with_alpha=True),
+            load_image(sprites_dir / 'bat-downflap.png', with_alpha=True),
+            load_image(sprites_dir / 'bat-downflap.png', with_alpha=True)
         ]
 
         # Audio Effects
