@@ -20,7 +20,7 @@ class AssetManager:
         audio_dir = ASSETS_DIR / 'audio'
 
         # Background & UI
-        self.background = load_image(sprites_dir / 'background-day.png')
+        self.background = load_image(sprites_dir / 'background-night.png')
         self.background = pygame.transform.scale(self.background, (SCREEN_WIDTH, SCREEN_HEIGHT))
         self.message = load_image(sprites_dir / 'message.png', with_alpha=True)
 
