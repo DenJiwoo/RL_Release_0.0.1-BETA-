@@ -86,3 +86,21 @@ class Ground(pygame.sprite.Sprite):
     @property
     def is_off_screen(self):
         return self.rect.right < 0
+
+
+class Background(pygame.sprite.Sprite):
+
+    def __init__(self, assets, x_pos, speed=1.0):
+        super().__init__()
+        self.image = assets.background
+        self.rect = self.image.get_rect(topleft=(x_pos, 0))
+        self.speed = speed
+        self.x = float(x_pos)
+
+    def update(self):
+        self.x -= getattr(self, "speed", 1.0)
+        self.rect.x = int(round(self.x))
+
+    @property
+    def is_off_screen(self):
+        return self.rect.right < 0

@@ -6,7 +6,7 @@ from config import (
     SCREEN_WIDTH, SCREEN_HEIGHT, GROUND_WIDTH, PIPE_GAP,
     PIPE_SPACING, STATE_READY, STATE_PLAYING, STATE_GAME_OVER
 )
-from entities import Bird, Pipe, Ground
+from entities import Bird, Pipe, Ground, Background
 
 
 class FlappyGame:
@@ -22,12 +22,14 @@ class FlappyGame:
         self.bird_group = pygame.sprite.GroupSingle()
         self.ground_group = pygame.sprite.Group()
         self.pipe_group = pygame.sprite.Group()
+        self.bg_group = pygame.sprite.Group()
 
         # Progressive difficulty parameters
         self.base_speed = 4.0        # Baseline scroll speed (px/frame)
         self.speed_increment = 0.2   # +5% speed every 20 pipes
         self.max_speed = 5.0         # 1.5x speed ceiling
         self.pipe_speed = self.base_speed
+        self.bg_speed_ratio = 0.25
 
         self.reset()
 
@@ -42,6 +44,8 @@ class FlappyGame:
             pipe.speed = self.pipe_speed
         for ground in self.ground_group:
             ground.speed = self.pipe_speed
+        for bg in self.bg_group:
+            bg.speed = self.pipe_speed * self.bg_speed_ratio
 
     def reset(self):
         self.score = 0
@@ -50,9 +54,14 @@ class FlappyGame:
         self.bird_group.empty()
         self.ground_group.empty()
         self.pipe_group.empty()
+        self.bg_group.empty()
 
         self.bird = Bird(self.assets)
         self.bird_group.add(self.bird)
+
+        for i in range(2):
+            bg = Background(self.assets, SCREEN_WIDTH * i, speed=self.pipe_speed * self.bg_speed_ratio)
+            self.bg_group.add(bg)
 
         for i in range(2):
             ground = Ground(self.assets, GROUND_WIDTH * i)
@@ -122,6 +131,18 @@ class FlappyGame:
 
     def update(self):
         if self.state in (STATE_READY, STATE_PLAYING):
+            self.bg_group.update()
+            first_bg = self.bg_group.sprites()[0]
+            if first_bg.is_off_screen:
+                self.bg_group.remove(first_bg)
+                last_bg = self.bg_group.sprites()[-1]
+                new_bg = Background(
+                    self.assets,
+                    last_bg.rect.right,
+                    speed=self.pipe_speed * self.bg_speed_ratio
+                )
+                self.bg_group.add(new_bg)
+
             self.ground_group.update()
             first_ground = self.ground_group.sprites()[0]
             if first_ground.is_off_screen:
@@ -149,7 +170,7 @@ class FlappyGame:
                     if self.bird.rect.centerx > pipe.rect.centerx:
                         pipe.passed = True
                         self.score += 1
-                        self._update_speed()  # Recalculate speed on score changes
+                        self._update_speed()
 
             ground_hit = pygame.sprite.spritecollide(
                 self.bird, self.ground_group, False, pygame.sprite.collide_mask
@@ -164,7 +185,7 @@ class FlappyGame:
                 self.state = STATE_GAME_OVER
 
     def draw(self):
-        self.screen.blit(self.assets.background, (0, 0))
+        self.bg_group.draw(self.screen)
         self.pipe_group.draw(self.screen)
         self.ground_group.draw(self.screen)
         self.bird_group.draw(self.screen)
